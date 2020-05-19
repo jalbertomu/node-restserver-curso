@@ -11,7 +11,8 @@ app.get('/usuario', function(req, res) {
     let limite = req.query.limite || 5;
     limite = Number(limite)
 
-    Usuario.find({})
+    /* de segundo parametro le estamos enviando los campos que aparezcan en la response*/
+    Usuario.find({ estado: true }, 'nombre email role estado google img')
         .skip(desde)
         .limit(limite)
         .exec((err, usuarios) => {
@@ -22,7 +23,7 @@ app.get('/usuario', function(req, res) {
                 })
             }
 
-            Usuario.count({}, (err, conteo) => {
+            Usuario.count({ estado: true }, (err, conteo) => {
                 res.json({
                     ok: true,
                     usuarios,
@@ -90,8 +91,26 @@ app.put('/usuario/:id', function(req, res) {
 
 })
 
-app.delete('/usuario', function(req, res) {
-    res.json('delete usuario')
+app.delete('/usuario/:id', function(req, res) {
+    let id = req.params.id;
+    let cambiaEstado = {
+            estado: false
+        }
+        /* en el segundo parametro se le pasan las propiedades a modificar */
+    Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true }, (err, usuarioDB) => {
+        estado = false;
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            })
+        }
+
+        res.json({
+            ok: true,
+            usuario: usuarioDB
+        })
+    })
 })
 
 module.exports = app
