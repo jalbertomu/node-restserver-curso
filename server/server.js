@@ -11,6 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(require('./controllers/usuario'));
 app.use(require('./controllers/producto'));
+app.use(require('./controllers/status'));
 
 mongoose.connect(process.env.URLDB, (err, res) => {
     if (err) throw err;
