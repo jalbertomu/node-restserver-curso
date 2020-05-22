@@ -2,9 +2,11 @@ const express = require('express')
 const _ = require('underscore')
 const bcrypt = require('bcrypt')
 const Usuario = require('../models/usuario')
+const { verificaToken, verificaAdmin_Role } = require('../middleware/autenticacion')
 const app = express()
 
-app.get('/usuario', function(req, res) {
+/*En el segundo parametro iran los middleware, en ese caso lo utilizaremos para la verificacion del token */
+app.get('/usuario', verificaToken, (req, res) => {
     /*Los parametros opcionales estan en req.query*/
     let desde = req.query.desde || 0;
     desde = Number(desde);
@@ -36,32 +38,33 @@ app.get('/usuario', function(req, res) {
 
 })
 
-app.post('/usuario', function(req, res) {
-    let body = req.body;
-    let usuario = new Usuario({
-        nombre: body.nombre,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        role: body.role
-    })
-
-    usuario.save((err, usuarioDB) => {
-        if (err) {
-            return res.status(400).json({
-                ok: false,
-                err
-            })
-        }
-        //usuarioDB.password = null;
-        res.json({
-            ok: true,
-            usuario: usuarioDB
+app.post('/usuario', [verificaToken, verificaAdmin_Role],
+    function(req, res) {
+        let body = req.body;
+        let usuario = new Usuario({
+            nombre: body.nombre,
+            email: body.email,
+            password: bcrypt.hashSync(body.password, 10),
+            role: body.role
         })
+
+        usuario.save((err, usuarioDB) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    err
+                })
+            }
+            //usuarioDB.password = null;
+            res.json({
+                ok: true,
+                usuario: usuarioDB
+            })
+        })
+
     })
 
-})
-
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], function(req, res) {
     let id = req.params.id;
     /*La libreria underscore solo recogera los parametros que nosotro deseemos:
     primer parametro: sera el objecto completo (en este caso el body de la request)
@@ -91,7 +94,7 @@ app.put('/usuario/:id', function(req, res) {
 
 })
 
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [verificaToken, verificaAdmin_Role], function(req, res) {
     let id = req.params.id;
     let cambiaEstado = {
             estado: false
