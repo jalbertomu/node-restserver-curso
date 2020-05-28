@@ -5,5 +5,6 @@ app.use(require('./usuario'));
 app.use(require('./producto'));
 app.use(require('./status'));
 app.use(require('./login'));
+app.use(require('./categoria'));
 
 module.exports = app
